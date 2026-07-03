@@ -1,0 +1,29 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+# Don't generate audit events for all requests in RequestReceived stage.
+omitStages:
+  - "RequestReceived"
+rules:
+  # The following requests were manually identified as high-volume and low-risk,
+  # so drop them.
+  - level: None
+    users: ["system:kube-proxy"]
+    verbs: ["watch"]
+    resources:
+      - group: "" # core API group
+        resources: ["endpoints", "services", "services/status"]
+  # Log modifications (create, update, patch, delete) to pods and services
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete"]
+    resources:
+      - group: ""
+        resources: ["pods", "services", "secrets", "configmaps"]
+  # Log all access to secrets (crucial for PCI-DSS and GDPR)
+  - level: RequestResponse
+    resources:
+      - group: ""
+        resources: ["secrets"]
+  # Catch-all for everything else at Metadata level
+  - level: Metadata
+    omitStages:
+      - "RequestReceived"
