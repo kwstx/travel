@@ -78,6 +78,17 @@ CREATE TABLE bookings.flights (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE bookings.saga_states (
+    booking_id UUID PRIMARY KEY REFERENCES bookings.flights(id) ON DELETE CASCADE,
+    state VARCHAR(50) NOT NULL,
+    passenger_manifest JSONB,
+    offer_id VARCHAR(100),
+    payment_intent_id VARCHAR(100),
+    error_reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Payments Schema
 CREATE TABLE payments.vault (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

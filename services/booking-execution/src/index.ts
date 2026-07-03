@@ -26,15 +26,31 @@ const kafka = new Kafka({
 const consumer = kafka.consumer({ groupId: 'booking-execution-group' });
 const producer = kafka.producer();
 
+import { BookingSagaOrchestrator } from './saga';
+
 async function init() {
   await producer.connect();
   console.log('Connected to Kafka Producer');
 
   await consumer.connect();
-  await consumer.subscribe({ topic: 'booking-requested', fromBeginning: false });
-  await consumer.subscribe({ topic: 'payment-processed', fromBeginning: false });
-  await consumer.subscribe({ topic: 'payment-failed', fromBeginning: false });
+  
+  const topics = [
+    'booking-requested',
+    'offer-price-responded',
+    'payment-processed',
+    'payment-failed',
+    'gds-booking-confirmed',
+    'gds-booking-failed',
+    'payment-refunded'
+  ];
+
+  for (const topic of topics) {
+    await consumer.subscribe({ topic, fromBeginning: false });
+  }
+  
   console.log('Subscribed to booking topics');
+
+  const orchestrator = new BookingSagaOrchestrator(db, producer);
 
   await consumer.run({
     eachMessage: async ({ topic, partition, message }) => {
@@ -42,40 +58,30 @@ async function init() {
       const data = JSON.parse(message.value.toString());
       console.log(`Received message on topic ${topic}:`, data);
 
-      if (topic === 'booking-requested') {
-        // Create pending booking in DB
-        const result = await db.query(
-          'INSERT INTO bookings.flights (user_id, status, total_amount) VALUES ($1, $2, $3) RETURNING id',
-          [data.user_id, 'PENDING', data.price]
-        );
-        const bookingId = result.rows[0].id;
-        
-        // Publish to initiate payment (Saga step 1)
-        await producer.send({
-          topic: 'payment-requested',
-          messages: [{ value: JSON.stringify({ booking_id: bookingId, user_id: data.user_id, amount: data.price }) }]
-        });
-      } else if (topic === 'payment-processed') {
-        // Update booking status to CONFIRMED
-        await db.query('UPDATE bookings.flights SET status = $1 WHERE id = $2', ['CONFIRMED', data.booking_id]);
-        
-        // Data Minimization: Purge transient booking artifacts after ticket issuance
-        await db.query('DELETE FROM bookings.transient_artifacts WHERE booking_id = $1', [data.booking_id]);
-        
-        // Emit Booking Confirmed Event
-        await producer.send({
-          topic: 'booking-confirmed',
-          messages: [{ value: JSON.stringify({ booking_id: data.booking_id, user_id: data.user_id }) }]
-        });
-      } else if (topic === 'payment-failed') {
-         // Update booking status to FAILED
-         await db.query('UPDATE bookings.flights SET status = $1 WHERE id = $2', ['FAILED', data.booking_id]);
-         
-         // Emit Booking Failed Event
-         await producer.send({
-           topic: 'booking-failed',
-           messages: [{ value: JSON.stringify({ booking_id: data.booking_id, user_id: data.user_id, reason: data.reason }) }]
-         });
+      switch (topic) {
+        case 'booking-requested':
+          await orchestrator.handleBookingRequested(data);
+          break;
+        case 'offer-price-responded':
+          await orchestrator.handleOfferPriceResponded(data);
+          break;
+        case 'payment-processed':
+          await orchestrator.handlePaymentProcessed(data);
+          break;
+        case 'payment-failed':
+          await orchestrator.failSaga(data.booking_id, data.reason || 'Payment failed');
+          break;
+        case 'gds-booking-confirmed':
+          await orchestrator.handleGdsBookingConfirmed(data);
+          break;
+        case 'gds-booking-failed':
+          await orchestrator.handleGdsBookingFailed(data);
+          break;
+        case 'payment-refunded':
+          await orchestrator.handlePaymentRefunded(data);
+          break;
+        default:
+          console.warn(`Unhandled topic: ${topic}`);
       }
     }
   });
