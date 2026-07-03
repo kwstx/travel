@@ -1,11 +1,18 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: api-gateway
   labels:
     app: api-gateway
 spec:
   replicas: 2
+  strategy:
+    canary:
+      steps:
+      - setWeight: 20
+      - pause: {duration: 10m}
+      - setWeight: 50
+      - pause: {duration: 10m}
   selector:
     matchLabels:
       app: api-gateway
@@ -19,6 +26,18 @@ spec:
         image: travel/api-gateway:latest
         ports:
         - containerPort: 3000
+        env:
+        - name: LANGCHAIN_TRACING_V2
+          value: "true"
+        - name: LANGCHAIN_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: langsmith-secrets
+              key: api-key
+        - name: LANGCHAIN_PROJECT
+          value: "travel-agent"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.default.svc.cluster.local:4318"
 ---
 apiVersion: v1
 kind: Service
@@ -33,14 +52,21 @@ spec:
       port: 80
       targetPort: 3000
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: auth-service
   labels:
     app: auth-service
 spec:
   replicas: 2
+  strategy:
+    canary:
+      steps:
+      - setWeight: 20
+      - pause: {duration: 5m}
+      - setWeight: 50
+      - pause: {duration: 5m}
   selector:
     matchLabels:
       app: auth-service
@@ -57,6 +83,8 @@ spec:
         env:
         - name: DB_HOST
           value: "travel-postgres"
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: "http://otel-collector.default.svc.cluster.local:4318"
 ---
 apiVersion: v1
 kind: Service
