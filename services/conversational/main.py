@@ -1,13 +1,17 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import json
-import os
 import uuid
 from kafka import KafkaProducer
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
 from langchain_core.messages import HumanMessage
+from langchain_openai import OpenAIEmbeddings
 from agent import app_graph
 
 app = FastAPI(title="Conversational Orchestration Service")
@@ -26,17 +30,21 @@ try:
 except Exception as e:
     print(f"Failed to connect to Kafka: {e}")
 
-# Initialize Qdrant Client
+# Initialize Qdrant Client & Embeddings
 qdrant = None
 try:
     qdrant = QdrantClient(host=QDRANT_URL, port=QDRANT_PORT)
-    # Create collection if not exists
-    qdrant.recreate_collection(
-        collection_name="user_conversations",
-        vectors_config=models.VectorParams(size=1536, distance=models.Distance.COSINE),
-    )
+    # Check if collection exists to avoid overwriting memory
+    collections = [c.name for c in qdrant.get_collections().collections]
+    if "user_conversations" not in collections:
+        qdrant.create_collection(
+            collection_name="user_conversations",
+            vectors_config=models.VectorParams(size=1536, distance=models.Distance.COSINE),
+        )
 except Exception as e:
     print(f"Failed to connect to Qdrant: {e}")
+
+embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
 class MessageRequest(BaseModel):
     message: str
@@ -45,6 +53,9 @@ class MessageRequest(BaseModel):
 class ConfirmRequest(BaseModel):
     session_id: str
     confirm: bool
+
+class PreferenceRequest(BaseModel):
+    preference_text: str
 
 @app.get("/health")
 def health_check():
@@ -58,8 +69,24 @@ def process_message(req: MessageRequest, x_user_id: str = Header(None)):
     session_id = req.session_id or str(uuid.uuid4())
     config = {"configurable": {"thread_id": session_id}}
     
-    # 1. Retrieve conversation context & profile from Qdrant (mocked context for now)
-    user_context = "User prefers window seats and Morning flights. Frequent flyer status: Platinum."
+    # 1. Retrieve long-term conversation context & profile from Qdrant via RAG
+    user_context = "No specific preferences found."
+    if qdrant:
+        try:
+            query_vector = embeddings.embed_query(req.message)
+            search_result = qdrant.search(
+                collection_name="user_conversations",
+                query_vector=query_vector,
+                query_filter=models.Filter(
+                    must=[models.FieldCondition(key="user_id", match=models.MatchValue(value=x_user_id))]
+                ),
+                limit=3
+            )
+            if search_result:
+                contexts = [hit.payload.get("text", "") for hit in search_result]
+                user_context = " ".join(contexts)
+        except Exception as e:
+            print(f"Qdrant search failed: {e}")
     
     # 2. Invoke LangGraph agent
     input_state = {
@@ -68,7 +95,7 @@ def process_message(req: MessageRequest, x_user_id: str = Header(None)):
         "context": user_context
     }
     
-    # Run the graph
+    # Run the graph (short-term memory is managed automatically by RedisSaver checkpointer)
     app_graph.invoke(input_state, config)
     
     # 3. Check graph state for interruption
@@ -85,8 +112,34 @@ def process_message(req: MessageRequest, x_user_id: str = Header(None)):
     return {
         "reply": response_text,
         "session_id": session_id,
-        "requires_confirmation": requires_confirmation
+        "requires_confirmation": requires_confirmation,
+        "retrieved_context": user_context
     }
+
+@app.post("/chat/preferences")
+def add_preference(req: PreferenceRequest, x_user_id: str = Header(None)):
+    """Store explicit preferences or feedback as dense vector embeddings."""
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    if qdrant:
+        try:
+            vector = embeddings.embed_query(req.preference_text)
+            qdrant.upsert(
+                collection_name="user_conversations",
+                points=[
+                    models.PointStruct(
+                        id=str(uuid.uuid4()),
+                        vector=vector,
+                        payload={"user_id": x_user_id, "text": req.preference_text}
+                    )
+                ]
+            )
+            return {"status": "Preference saved successfully"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save preference: {e}")
+            
+    return {"status": "Qdrant not available"}
 
 @app.post("/chat/confirm_booking")
 def confirm_booking(req: ConfirmRequest, x_user_id: str = Header(None)):
