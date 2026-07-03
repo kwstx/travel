@@ -1,5 +1,8 @@
 from models import FeedbackEvent
 from rl_engine import ContextualBanditEngine
+from causal_analysis import CausalAnalyzer
+from privacy import PrivacyManager
+from fine_tuning import ModelFineTuner
 import logging
 
 logger = logging.getLogger(__name__)
@@ -10,6 +13,11 @@ class FeedbackCollector:
         self.event_store = [] # Mock external datastore (e.g. Redis/PostgreSQL)
         # Mock analytics graph/db for group compositions
         self.group_cooccurrences = {}
+        
+        # Initialize ML advanced components with strict privacy budget
+        self.privacy_manager = PrivacyManager(epsilon=0.5)
+        self.causal_analyzer = CausalAnalyzer()
+        self.fine_tuner = ModelFineTuner(self.causal_analyzer, self.privacy_manager)
 
     def process_event(self, event: FeedbackEvent):
         """Process an incoming feedback event."""
@@ -47,7 +55,11 @@ class FeedbackCollector:
         to re-compute user/item embeddings based on the accumulated event store.
         """
         logger.info(f"Starting weekly batch retraining with {len(self.event_store)} events...")
-        # Simulated logic: Extract interactions, call LLM embedding endpoint, update DB
+        
+        # Execute the fine tuning pipeline (anonymizes data, runs causal analysis, simulates fine-tuning)
+        if self.event_store:
+            self.fine_tuner.run_fine_tuning_job(self.event_store)
+            
         logger.info("Retraining complete. Embeddings refined.")
         # Clear or archive processed events
         self.event_store.clear()
