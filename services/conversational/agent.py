@@ -10,6 +10,9 @@ from langchain_core.tools import tool
 from langgraph.checkpoint.redis import RedisSaver
 import redis
 from dotenv import load_dotenv
+from langchain_core.messages import ToolMessage
+from plugin_manager import plugin_registry
+from itinerary_graph import itinerary_tools
 
 load_dotenv()
 
@@ -71,20 +74,17 @@ def merge_itinerary_preferences(user_id: str, companion_ids: str, itinerary_over
 safe_tools = [search_flights, confirm_price, assemble_passenger_details, update_preferences, query_companion_profiles, create_companion_profile, merge_itinerary_preferences]
 sensitive_tools = [submit_booking]
 
-safe_tool_node = ToolNode(safe_tools)
-sensitive_tool_node = ToolNode(sensitive_tools)
-
 # Configure LLM (Supports Open Source models via OpenAI compatible endpoints)
 llm_base_url = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
 llm_api_key = os.getenv("OPENAI_API_KEY", "dummy-key-for-local")
 llm_model = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
 
-llm = ChatOpenAI(
+base_llm = ChatOpenAI(
     model=llm_model,
     base_url=llm_base_url,
     api_key=llm_api_key,
     temperature=0
-).bind_tools(safe_tools + sensitive_tools)
+)
 
 def call_model(state: AgentState):
     messages = state["messages"]
@@ -96,6 +96,7 @@ You have access to tools for searching flights, confirming prices, assembling de
 - Ground your recommendations in the user's explicit preferences and past interactions provided in the context.
 - Before invoking the submit_booking tool, explain the final details to the user and request confirmation.
 - Use Chain-of-Thought reasoning: always think step-by-step about what information you have, what you need, and what tool to call next.
+- Use the itinerary graph tools (add_itinerary_item, add_itinerary_dependency, view_itinerary_graph) to model cross-service dependencies like flight arrivals and hotel check-ins. If you notice a constraint violation, proactively inform the user and suggest optimizations.
 
 # Few-Shot Examples
 User: "I want to go to Paris next week."
@@ -113,8 +114,51 @@ User ID: {state.get("user_id")}
 Context from User Profile / Past Interactions: {state.get("context")}
 """
     full_messages = [SystemMessage(content=system_prompt)] + messages
+    
+    current_all_tools = safe_tools + sensitive_tools + itinerary_tools + plugin_registry.get_dynamic_tools()
+    llm = base_llm.bind_tools(current_all_tools)
+    
     response = llm.invoke(full_messages)
     return {"messages": [response]}
+
+def execute_safe_tools(state: AgentState):
+    messages = state["messages"]
+    last_message = messages[-1]
+    results = []
+    
+    all_safe_tools = safe_tools + itinerary_tools + plugin_registry.get_dynamic_tools()
+    tool_map = {t.name: t for t in all_safe_tools}
+    
+    for tc in last_message.tool_calls:
+        tool = tool_map.get(tc["name"])
+        if tool:
+            try:
+                res = tool.invoke(tc["args"])
+            except Exception as e:
+                res = f"Error executing tool: {e}"
+            results.append(ToolMessage(content=str(res), tool_call_id=tc["id"], name=tc["name"]))
+        else:
+            results.append(ToolMessage(content="Tool not found.", tool_call_id=tc["id"], name=tc["name"]))
+    return {"messages": results}
+
+def execute_sensitive_tools(state: AgentState):
+    messages = state["messages"]
+    last_message = messages[-1]
+    results = []
+    
+    tool_map = {t.name: t for t in sensitive_tools}
+    
+    for tc in last_message.tool_calls:
+        tool = tool_map.get(tc["name"])
+        if tool:
+            try:
+                res = tool.invoke(tc["args"])
+            except Exception as e:
+                res = f"Error executing tool: {e}"
+            results.append(ToolMessage(content=str(res), tool_call_id=tc["id"], name=tc["name"]))
+        else:
+            results.append(ToolMessage(content="Tool not found.", tool_call_id=tc["id"], name=tc["name"]))
+    return {"messages": results}
 
 def route_tools(state: AgentState) -> Literal["safe_tools", "sensitive_tools", END]:
     messages = state["messages"]
@@ -130,8 +174,8 @@ def route_tools(state: AgentState) -> Literal["safe_tools", "sensitive_tools", E
 workflow = StateGraph(AgentState)
 
 workflow.add_node("agent", call_model)
-workflow.add_node("safe_tools", safe_tool_node)
-workflow.add_node("sensitive_tools", sensitive_tool_node)
+workflow.add_node("safe_tools", execute_safe_tools)
+workflow.add_node("sensitive_tools", execute_sensitive_tools)
 
 workflow.add_edge(START, "agent")
 workflow.add_conditional_edges("agent", route_tools)

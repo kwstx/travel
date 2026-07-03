@@ -111,6 +111,43 @@ services:
     networks:
       - travel-network
 
+  # ----------------------------------------
+  # Conversational Service
+  # ----------------------------------------
+  conversational:
+    build:
+      context: ./services/conversational
+    container_name: travel-conversational
+    ports:
+      - "8000:8000"
+    environment:
+      KAFKA_BROKER: kafka:29092
+      QDRANT_URL: qdrant
+      QDRANT_PORT: 6333
+      REDIS_URL: redis://redis:6379
+    networks:
+      - travel-network
+    depends_on:
+      - kafka
+      - qdrant
+      - redis
+
+  # ----------------------------------------
+  # Hotel Booking Service
+  # ----------------------------------------
+  hotel-booking:
+    build:
+      context: ./services/hotel-booking
+    container_name: travel-hotel-booking
+    ports:
+      - "8001:8000"
+    environment:
+      CONVERSATIONAL_SERVICE_URL: http://conversational:8000
+    networks:
+      - travel-network
+    depends_on:
+      - conversational
+
 networks:
   travel-network:
     driver: bridge

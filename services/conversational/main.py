@@ -15,6 +15,7 @@ from langchain_openai import OpenAIEmbeddings
 from agent import app_graph
 import requests
 from post_travel import generate_outreach_message, extract_feedback
+from plugin_manager import plugin_registry
 
 app = FastAPI(title="Conversational Orchestration Service")
 
@@ -70,6 +71,22 @@ class ItineraryEventRequest(BaseModel):
 class PostTravelFeedbackRequest(BaseModel):
     session_id: Optional[str] = None
     feedback: str
+
+class ToolRegistrationRequest(BaseModel):
+    tool_name: str
+    tool_description: str
+    parameters_schema: dict
+    execute_url: str
+
+@app.post("/plugins/register")
+def register_plugin(req: ToolRegistrationRequest):
+    plugin_registry.register_tool(
+        req.tool_name, 
+        req.tool_description, 
+        req.parameters_schema, 
+        req.execute_url
+    )
+    return {"status": "success", "message": f"Tool {req.tool_name} registered successfully."}
 
 @app.get("/health")
 def health_check():
