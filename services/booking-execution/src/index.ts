@@ -59,6 +59,9 @@ async function init() {
         // Update booking status to CONFIRMED
         await db.query('UPDATE bookings.flights SET status = $1 WHERE id = $2', ['CONFIRMED', data.booking_id]);
         
+        // Data Minimization: Purge transient booking artifacts after ticket issuance
+        await db.query('DELETE FROM bookings.transient_artifacts WHERE booking_id = $1', [data.booking_id]);
+        
         // Emit Booking Confirmed Event
         await producer.send({
           topic: 'booking-confirmed',

@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payment-vault-isolation
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: payment-vault
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: booking-execution
+    ports:
+    - protocol: TCP
+      port: 3004
+  egress:
+  - to:
+    - namespaceSelector: {}
+      # Allowing outbound to the internet (e.g., Stripe API)
+    ports:
+    - protocol: TCP
+      port: 443
+  - to:
+    - podSelector:
+        matchLabels:
+          app: travel-postgres # Internal DB
+    ports:
+    - protocol: TCP
+      port: 5432

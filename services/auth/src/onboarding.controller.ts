@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import { validateLoyalty, validatePreferences, validateCompanion, validateConsent } from './validation';
 import { areNamesDuplicate } from './fuzzyMatch';
 import { logEvent, reconstructUserState } from './ledger';
+import { encrypt, decrypt } from './encryption';
+import { AuthRequest, Role, requireRoles, requestJitElevation } from './rbac';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_for_travel_app_development';
@@ -38,19 +40,22 @@ router.post('/loyalty', async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        const encryptedMemberNumber = encrypt(memberNumber);
+
         const result = await db.query(
             `INSERT INTO auth.loyalty_programs (user_id, airline_code, member_number, tier_status)
              VALUES ($1, $2, $3, $4)
              ON CONFLICT (user_id, airline_code) 
              DO UPDATE SET member_number = EXCLUDED.member_number, tier_status = EXCLUDED.tier_status
              RETURNING *`,
-            [userId, airlineCode, memberNumber, tierStatus]
+            [userId, airlineCode, encryptedMemberNumber, tierStatus]
         );
 
         // Audit Event
-        await logEvent(userId, 'LOYALTY_UPDATE', { airlineCode, memberNumber, tierStatus });
+        await logEvent(userId, 'LOYALTY_UPDATE', { airlineCode, memberNumber: '***', tierStatus });
 
-        res.json({ success: true, loyalty: result.rows[0] });
+        const savedLoyalty = { ...result.rows[0], member_number: decrypt(result.rows[0].member_number) };
+        res.json({ success: true, loyalty: savedLoyalty });
     } catch (error) {
         console.error('Loyalty save error:', error);
         res.status(500).json({ error: 'Failed to save loyalty information' });
@@ -203,5 +208,25 @@ router.get('/reconstruct', async (req: Request, res: Response): Promise<void> =>
     }
 });
 
-export default router;
+// JIT Elevation Endpoint for Support Staff
+router.post('/elevate-privilege', requireRoles([Role.SUPPORT]), async (req: Request, res: Response): Promise<void> => {
+    try {
+        const authReq = req as AuthRequest;
+        const userId = authReq.user!.id;
+        // In a real application, we would retrieve the roles from the DB or a trusted token
+        const currentRoles = authReq.user!.roles || [Role.SUPPORT];
+        const durationMinutes = req.body.durationMinutes || 60;
 
+        const { roles: newRoles, jitExpiration } = requestJitElevation(userId, currentRoles, durationMinutes);
+
+        // Here you would save the new roles and expiration to a session store or issue a new JWT
+        await logEvent(userId, 'JIT_ELEVATION_GRANTED', { newRoles, jitExpiration });
+
+        res.json({ success: true, newRoles, jitExpiration });
+    } catch (error: any) {
+        console.error('JIT elevation error:', error);
+        res.status(500).json({ error: error.message || 'Failed to elevate privilege' });
+    }
+});
+
+export default router;

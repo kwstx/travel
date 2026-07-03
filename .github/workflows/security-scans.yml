@@ -1,0 +1,45 @@
+name: Security Scans
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Daily vulnerability scanning
+    - cron: '0 3 * * 0' # Weekly penetration testing
+    - cron: '0 0 1 1,4,7,10 *' # Quarterly ASV scans
+  push:
+    branches: [ main ]
+
+jobs:
+  vulnerability-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'travel/api-gateway:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  penetration-test:
+    runs-on: ubuntu-latest
+    needs: vulnerability-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'https://staging.travelagent.ai'
+
+  asv-scan:
+    if: github.event.schedule == '0 0 1 1,4,7,10 *'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Quarterly ASV Scan Notification
+        run: |
+          echo "Initiating mandated quarterly ASV scan for PCI-DSS compliance."
+          # Invoke external ASV scanning tool integration here
