@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+prophet
+pandas
+numpy
+redis
+scikit-learn
+requests
+httpx
