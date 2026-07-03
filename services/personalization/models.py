@@ -39,6 +39,13 @@ class RoleType(str, Enum):
     BUSINESS = "business"
     FRIEND = "friend"
 
+class DomainType(str, Enum):
+    FLIGHT = "flight"
+    HOTEL = "hotel"
+    ACTIVITY = "activity"
+    CAR = "car"
+    GENERIC = "generic"
+
 class CompanionProfile(BaseModel):
     id: str
     name: str
@@ -56,4 +63,27 @@ class GroupProfile(BaseModel):
     name: str
     member_ids: List[str] = Field(default_factory=list, description="List of user or companion IDs")
     shared_preferences: Dict[str, Any] = Field(default_factory=dict, description="Merged or overriding preferences for the group")
+
+class UserEmbeddingProfile(BaseModel):
+    user_id: str
+    domain_embeddings: Dict[DomainType, str] = Field(
+        default_factory=dict, 
+        description="Mapping of DomainType to vector IDs or embedding identifiers"
+    )
+    cross_domain_preferences: Dict[str, Any] = Field(default_factory=dict)
+
+class RecommendationRequestV2(BaseModel):
+    user_id: str
+    session_id: str
+    domain: DomainType
+    context_features: Dict[str, Any] = Field(default_factory=dict, description="Context features relevant to the requested domain")
+    candidate_items: List[Dict[str, Any]] = Field(description="List of candidate items represented as dictionaries for multi-domain flexibility")
+
+class RecommendationResponseV2(BaseModel):
+    user_id: str
+    domain: DomainType
+    recommended_items: List[Dict[str, Any]]
+    experiment_group: str
+    policy_used: str
+    plugin_used: str = Field(..., description="Identifies which domain plugin provided the recommendations")
 

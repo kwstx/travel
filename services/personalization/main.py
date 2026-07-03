@@ -4,11 +4,15 @@ from rl_engine import ContextualBanditEngine
 from feedback_loop import FeedbackCollector
 from ab_testing import ABExperimentManager
 import logging
+import api_v2
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Personalization Service")
+
+# Mount the V2 router for multi-domain modular recommendations
+app.include_router(api_v2.router, prefix="/v2")
 
 # Initialize stateful components
 rl_engine = ContextualBanditEngine()
