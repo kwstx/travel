@@ -26,6 +26,14 @@ class FeedbackCollector:
                     self.group_cooccurrences[group_key] = self.group_cooccurrences.get(group_key, 0) + 1
                     logger.info(f"Updated group co-occurrence for {group_key}: {self.group_cooccurrences[group_key]} trips")
                     
+        # Process post-trip feedback
+        if event.event_type == "post_trip_feedback":
+            satisfaction = event.value
+            pain_points = event.metadata.get("pain_points", [])
+            logger.info(f"Processed post-trip feedback for {event.user_id}: score={satisfaction}, pain_points={len(pain_points)}")
+            # In a real system we might update RL engine user profile embeddings online here
+            # For now, we rely on event_store capturing it for batch retraining
+
         # Immediate online update for RL policy
         if event.item_id:
             reward = self.rl_engine.calculate_reward(event.event_type, event.value)

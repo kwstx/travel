@@ -13,6 +13,8 @@ from qdrant_client.http import models
 from langchain_core.messages import HumanMessage
 from langchain_openai import OpenAIEmbeddings
 from agent import app_graph
+import requests
+from post_travel import generate_outreach_message, extract_feedback
 
 app = FastAPI(title="Conversational Orchestration Service")
 
@@ -61,6 +63,13 @@ class ConsentRequest(BaseModel):
     companion_email_or_phone: str
     role: str
     message: Optional[str] = "Please approve sharing your travel preferences for group booking."
+
+class ItineraryEventRequest(BaseModel):
+    itinerary_details: dict
+
+class PostTravelFeedbackRequest(BaseModel):
+    session_id: Optional[str] = None
+    feedback: str
 
 @app.get("/health")
 def health_check():
@@ -191,6 +200,77 @@ def request_consent(req: ConsentRequest, x_user_id: str = Header(None)):
         return {"status": "Consent request initiated asynchronously.", "target": req.companion_email_or_phone}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to initiate consent request: {e}")
+
+@app.post("/events/itinerary_completed")
+def itinerary_completed_event(req: ItineraryEventRequest, x_user_id: str = Header(None)):
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    outreach_msg = generate_outreach_message(req.itinerary_details)
+    
+    # Send via notifications_events Kafka topic
+    try:
+        if producer:
+            event = {
+                "event_type": "post_travel_outreach",
+                "user_id": x_user_id,
+                "message": outreach_msg,
+                "channel": "push" # Specific channel as requested
+            }
+            producer.send("notifications_events", event)
+            producer.flush()
+            return {"status": "Outreach message queued via specific channel", "message": outreach_msg}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to send outreach event: {e}")
+    return {"status": "Kafka producer not available", "message": outreach_msg}
+
+@app.post("/chat/post_travel_feedback")
+def post_travel_feedback(req: PostTravelFeedbackRequest, x_user_id: str = Header(None)):
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # 1. Extract feedback
+    extracted = extract_feedback(req.feedback)
+    
+    # 2. Save reflections to Qdrant
+    if qdrant:
+        try:
+            vector = embeddings.embed_query(extracted.reflections)
+            qdrant.upsert(
+                collection_name="user_conversations",
+                points=[
+                    models.PointStruct(
+                        id=str(uuid.uuid4()),
+                        vector=vector,
+                        payload={"user_id": x_user_id, "text": f"Post-trip reflection: {extracted.reflections}"}
+                    )
+                ]
+            )
+        except Exception as e:
+            print(f"Failed to save reflections to Qdrant: {e}")
+            
+    # 3. Forward structured data to personalization service
+    feedback_payload = {
+        "user_id": x_user_id,
+        "session_id": req.session_id or str(uuid.uuid4()),
+        "event_type": "post_trip_feedback",
+        "value": extracted.satisfaction_score,
+        "metadata": {
+            "pain_points": extracted.pain_points,
+            "reflections": extracted.reflections
+        }
+    }
+    
+    try:
+        resp = requests.post("http://personalization:8000/feedback", json=feedback_payload)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"Failed to forward feedback to personalization: {e}")
+        
+    return {
+        "status": "Feedback processed successfully",
+        "extracted_data": extracted.model_dump()
+    }
 
 if __name__ == "__main__":
     import uvicorn
