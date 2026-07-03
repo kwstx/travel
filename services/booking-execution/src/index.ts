@@ -41,7 +41,8 @@ async function init() {
     'payment-failed',
     'gds-booking-confirmed',
     'gds-booking-failed',
-    'payment-refunded'
+    'payment-refunded',
+    'itinerary-stored' // New topic to reach CONFIRMED state
   ];
 
   for (const topic of topics) {
@@ -69,7 +70,7 @@ async function init() {
           await orchestrator.handlePaymentProcessed(data);
           break;
         case 'payment-failed':
-          await orchestrator.failSaga(data.booking_id, data.reason || 'Payment failed');
+          await orchestrator.handlePaymentFailed(data);
           break;
         case 'gds-booking-confirmed':
           await orchestrator.handleGdsBookingConfirmed(data);
@@ -79,6 +80,9 @@ async function init() {
           break;
         case 'payment-refunded':
           await orchestrator.handlePaymentRefunded(data);
+          break;
+        case 'itinerary-stored':
+          await orchestrator.handleItineraryStored(data);
           break;
         default:
           console.warn(`Unhandled topic: ${topic}`);
