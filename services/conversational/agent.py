@@ -46,7 +46,29 @@ def submit_booking(flight_id: str, user_id: str) -> str:
     """Submit a flight booking for a user. Requires human confirmation first."""
     return f"Booking {flight_id} for user {user_id} has been submitted successfully."
 
-safe_tools = [search_flights, confirm_price, assemble_passenger_details, update_preferences]
+@tool
+def query_companion_profiles(user_id: str) -> str:
+    """Retrieve all companion profiles linked to the user that have granted data sharing consent."""
+    # In a real app, this would query the personalization DB.
+    # For now, returning a mock response simulating the DB query.
+    return json.dumps([
+        {"companion_id": "C001", "name": "Alice", "role": "business", "base_preferences": {"seat": "window", "meal": "vegetarian"}}
+    ])
+
+@tool
+def create_companion_profile(user_id: str, name: str, role: str, preferences: str, consent_granted: bool) -> str:
+    """Create a new companion profile and link it to the primary user. preferences should be a JSON string dictionary."""
+    return f"Companion {name} created with role {role}. Consent granted: {consent_granted}."
+
+@tool
+def merge_itinerary_preferences(user_id: str, companion_ids: str, itinerary_overrides: str) -> str:
+    """Merge preferences for the primary user and companions, applying any specific itinerary overrides.
+    companion_ids: JSON string list of companion IDs.
+    itinerary_overrides: JSON string dictionary of preferences specific to this trip.
+    """
+    return f"Merged preferences for itinerary including companions {companion_ids} with overrides: {itinerary_overrides}. Use this merged vector for the current search."
+
+safe_tools = [search_flights, confirm_price, assemble_passenger_details, update_preferences, query_companion_profiles, create_companion_profile, merge_itinerary_preferences]
 sensitive_tools = [submit_booking]
 
 safe_tool_node = ToolNode(safe_tools)

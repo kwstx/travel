@@ -24,5 +24,6 @@ kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --partition
 kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --topic payment-requested
 kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --topic payment-refund-requested
 kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --topic payment-refunded
+kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --topic flight-status-updated
 
 echo "Kafka topics created successfully!"

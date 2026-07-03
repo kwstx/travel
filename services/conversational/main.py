@@ -57,6 +57,11 @@ class ConfirmRequest(BaseModel):
 class PreferenceRequest(BaseModel):
     preference_text: str
 
+class ConsentRequest(BaseModel):
+    companion_email_or_phone: str
+    role: str
+    message: Optional[str] = "Please approve sharing your travel preferences for group booking."
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "conversational"}
@@ -164,6 +169,28 @@ def confirm_booking(req: ConfirmRequest, x_user_id: str = Header(None)):
         "reply": response_text,
         "session_id": req.session_id
     }
+
+@app.post("/chat/consent/request")
+def request_consent(req: ConsentRequest, x_user_id: str = Header(None)):
+    if not x_user_id:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # Trigger an async notification (e.g., email/SMS magic link) to the companion
+    try:
+        if producer:
+            event = {
+                "event_type": "consent_requested",
+                "primary_user_id": x_user_id,
+                "target_contact": req.companion_email_or_phone,
+                "role": req.role,
+                "message": req.message,
+                "status": "pending"
+            }
+            producer.send("consent_events", event)
+            producer.flush()
+        return {"status": "Consent request initiated asynchronously.", "target": req.companion_email_or_phone}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to initiate consent request: {e}")
 
 if __name__ == "__main__":
     import uvicorn

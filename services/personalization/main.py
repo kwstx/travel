@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, BackgroundTasks
-from models import FeedbackEvent, RecommendationRequest, RecommendationResponse, ABTestConfig
+from models import FeedbackEvent, RecommendationRequest, RecommendationResponse, ABTestConfig, NotificationPreferences
 from rl_engine import ContextualBanditEngine
 from feedback_loop import FeedbackCollector
 from ab_testing import ABExperimentManager
@@ -55,3 +55,15 @@ def trigger_batch_retraining(background_tasks: BackgroundTasks):
     """Manually triggers the weekly batch retraining of embeddings via LLMs."""
     background_tasks.add_task(feedback_collector.run_batch_retraining)
     return {"status": "retraining_started"}
+
+@app.get("/users/{user_id}/preferences/notifications", response_model=NotificationPreferences)
+def get_notification_preferences(user_id: str):
+    """Returns the user's notification preferences for alerts."""
+    # Mocking standard preferences for now
+    return NotificationPreferences(
+        user_id=user_id,
+        alert_on_delay_minutes=30,
+        alert_on_gate_change=True,
+        alert_on_cancellation=True
+    )
+
