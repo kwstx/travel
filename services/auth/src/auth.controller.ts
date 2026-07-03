@@ -10,8 +10,19 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse
 } from '@simplewebauthn/server';
+import { validateProfile } from './validation';
+import { createSession, rotateSession, revokeSession, DeviceBinding } from './session';
+import { logEvent } from './ledger';
 
 const router = Router();
+
+function getDeviceBinding(req: Request): DeviceBinding {
+  const deviceId = req.headers['x-device-id'] as string || 'unknown-device';
+  const userAgent = req.headers['user-agent'] || 'unknown-ua';
+  const ipAddress = (req.headers['x-forwarded-for'] as string) || req.ip || req.socket.remoteAddress || 'unknown-ip';
+  return { deviceId, userAgent, ipAddress };
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_for_travel_app_development';
 const RP_NAME = 'AI Travel Agent';
 const RP_ID = process.env.RP_ID || 'localhost';
@@ -31,6 +42,13 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, firstName, lastName } = req.body;
     
+    // Schema Validation
+    const validationErrors = validateProfile({ email, firstName, lastName });
+    if (validationErrors.length > 0) {
+      res.status(400).json({ error: 'Validation failed', details: validationErrors });
+      return;
+    }
+
     const userCheck = await db.query('SELECT * FROM auth.users WHERE email = $1', [email]);
     if (userCheck.rows.length > 0) {
        res.status(400).json({ error: 'User already exists' });
@@ -47,9 +65,17 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       'INSERT INTO auth.users (email, password_hash, first_name, last_name) VALUES ($1, $2, $3, $4) RETURNING id, email, first_name, last_name',
       [email, passwordHash, firstName, lastName]
     );
+
+    const user = newUser.rows[0];
+
+    // Audit Event logging
+    await logEvent(user.id, 'PROFILE_CREATE', { email, firstName, lastName });
     
-    const token = jwt.sign({ id: newUser.rows[0].id, email }, JWT_SECRET, { expiresIn: '1d' });
-    res.status(201).json({ user: newUser.rows[0], token });
+    // Device-bound Session
+    const device = getDeviceBinding(req);
+    const session = await createSession(user.id, device);
+
+    res.status(201).json({ user, ...session });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -59,6 +85,12 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
+
+    const userCheck = validateProfile({ email });
+    if (userCheck.length > 0) {
+      res.status(400).json({ error: 'Validation failed', details: userCheck });
+      return;
+    }
     
     const result = await db.query('SELECT * FROM auth.users WHERE email = $1', [email]);
     if (result.rows.length === 0) {
@@ -79,15 +111,19 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
        return;
     }
     
-    const token = jwt.sign({ id: user.id, email }, JWT_SECRET, { expiresIn: '1d' });
     const { password_hash, ...userProfile } = user;
+
+    // Device-bound Session
+    const device = getDeviceBinding(req);
+    const session = await createSession(user.id, device);
     
-    res.json({ user: userProfile, token });
+    res.json({ user: userProfile, ...session });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
+
 
 // Magic Link Implementation
 const magicLinkStore: Record<string, string> = {}; // In-memory store for demo. Use Redis in prod.
@@ -359,13 +395,50 @@ router.get('/oauth/callback', async (req: Request, res: Response): Promise<void>
             [user.id, oidcClient.issuer.metadata.issuer, providerId]
         );
 
-        const jwtToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+        const device = getDeviceBinding(req);
+        const session = await createSession(user.id, device);
         
-        res.json({ user, token: jwtToken });
+        res.json({ user, ...session });
     } catch (error) {
         console.error('OIDC callback error:', error);
         res.status(500).json({ error: 'OIDC callback failed' });
     }
 });
 
+// Refresh token route with device binding validation
+router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            res.status(400).json({ error: 'Refresh token is required' });
+            return;
+        }
+
+        const device = getDeviceBinding(req);
+        const session = await rotateSession(refreshToken, device);
+        res.json(session);
+    } catch (error: any) {
+        console.error('Token refresh error:', error.message);
+        res.status(401).json({ error: error.message });
+    }
+});
+
+// Logout / revoke session route
+router.post('/logout', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            res.status(400).json({ error: 'Refresh token is required' });
+            return;
+        }
+
+        await revokeSession(refreshToken);
+        res.json({ success: true, message: 'Session revoked successfully' });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Logout failed' });
+    }
+});
+
 export default router;
+

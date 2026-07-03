@@ -87,3 +87,34 @@ CREATE TABLE payments.vault (
     card_brand VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+-- Consent Records
+CREATE TABLE auth.consent_records (
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    permission_flag VARCHAR(50) NOT NULL,
+    granted BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, permission_flag)
+);
+
+-- Event-sourced profile audit ledger
+CREATE TABLE auth.profile_audit_ledger (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    event_type VARCHAR(50) NOT NULL, -- e.g., 'PROFILE_UPDATE', 'PREFERENCES_UPDATE', 'LOYALTY_UPDATE', 'LOYALTY_DELETE', 'COMPANION_CREATE', 'COMPANION_UPDATE', 'COMPANION_DELETE', 'CONSENT_UPDATE'
+    payload JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Device-bound User Sessions / Refresh Tokens
+CREATE TABLE auth.sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    refresh_token_hash VARCHAR(255) NOT NULL,
+    device_id VARCHAR(255) NOT NULL,
+    user_agent TEXT,
+    ip_address VARCHAR(45),
+    is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
