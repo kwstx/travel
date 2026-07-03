@@ -21,6 +21,10 @@ const producer = kafka.producer();
 
 const redisClient = createClient({ url: REDIS_URL });
 
+import { AggregatorService } from './services/AggregatorService';
+
+const aggregatorService = new AggregatorService();
+
 async function init() {
   await redisClient.connect();
   console.log('Connected to Redis');
@@ -38,19 +42,24 @@ async function init() {
       const data = JSON.parse(message.value.toString());
       console.log('Received flight search request:', data);
 
-      // Simulate fetching from GDS (Amadeus/Sabre)
-      const mockFlights = [
-        { id: 'FL123', airline: 'Delta', price: 450.00, departure: data.entities?.date || '2026-08-01', pnr_candidate: 'DELTA123' },
-        { id: 'FL456', airline: 'United', price: 420.00, departure: data.entities?.date || '2026-08-01', pnr_candidate: 'UNIT456' }
-      ];
+      const criteria = {
+        origin: data.entities?.origin || 'JFK',
+        destination: data.entities?.destination || 'LHR',
+        date: data.entities?.date || '2026-08-01',
+        passengers: data.entities?.passengers || 1
+      };
 
-      // Cache the results in Redis with a short TTL (e.g. 15 mins)
-      const cacheKey = `flights:${data.user_id}:${data.session_id}`;
-      await redisClient.set(cacheKey, JSON.stringify(mockFlights), { EX: 900 });
+      try {
+        const aggregatedFlights = await aggregatorService.aggregateFlights(criteria);
 
-      // In a real system, we'd send a message back or notify the conversational service that results are ready.
-      // For now, let's just log it.
-      console.log(`Saved flights for ${data.user_id} to cache`);
+        // Cache the results in Redis with a short TTL (e.g. 15 mins)
+        const cacheKey = `flights:${data.user_id}:${data.session_id}`;
+        await redisClient.set(cacheKey, JSON.stringify(aggregatedFlights), { EX: 900 });
+
+        console.log(`Saved ${aggregatedFlights.length} flights for ${data.user_id} to cache`);
+      } catch (error) {
+        console.error('Error during flight aggregation:', error);
+      }
     }
   });
 }
