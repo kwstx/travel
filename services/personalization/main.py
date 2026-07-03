@@ -21,6 +21,14 @@ def receive_feedback(event: FeedbackEvent, background_tasks: BackgroundTasks):
     background_tasks.add_task(feedback_collector.process_event, event)
     return {"status": "accepted"}
 
+@app.post("/analytics/group-booking", status_code=202)
+def track_group_booking(event: FeedbackEvent, background_tasks: BackgroundTasks):
+    """Tracks group booking compositions for analytics and recommendations."""
+    if event.event_type != "group_booking":
+        raise HTTPException(status_code=400, detail="Event type must be group_booking")
+    background_tasks.add_task(feedback_collector.process_event, event)
+    return {"status": "group_tracked"}
+
 @app.post("/recommend", response_model=RecommendationResponse)
 def get_recommendations(request: RecommendationRequest):
     """Provides personalized recommendations based on assigned A/B test variant."""

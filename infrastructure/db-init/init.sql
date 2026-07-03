@@ -70,7 +70,8 @@ CREATE TABLE auth.loyalty_programs (
 CREATE TABLE bookings.flights (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    pnr VARCHAR(20),
+    pnr JSONB,
+    companion_ids JSONB,
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
     total_amount DECIMAL(10, 2) NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'USD',

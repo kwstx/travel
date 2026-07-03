@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 class FeedbackEvent(BaseModel):
     user_id: str
     session_id: str
-    event_type: str = Field(..., description="click, booking, satisfaction_rating, post_trip_nps")
+    event_type: str = Field(..., description="click, booking, group_booking, satisfaction_rating, post_trip_nps")
     item_id: Optional[str] = None
     value: Optional[float] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)

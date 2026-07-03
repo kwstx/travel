@@ -8,12 +8,24 @@ class FeedbackCollector:
     def __init__(self, rl_engine: ContextualBanditEngine):
         self.rl_engine = rl_engine
         self.event_store = [] # Mock external datastore (e.g. Redis/PostgreSQL)
+        # Mock analytics graph/db for group compositions
+        self.group_cooccurrences = {}
 
     def process_event(self, event: FeedbackEvent):
         """Process an incoming feedback event."""
         self.event_store.append(event.model_dump())
         logger.info(f"Received event: {event.event_type} for user {event.user_id}")
         
+        # Track group-level patterns
+        if event.event_type == "group_booking":
+            group_members = event.metadata.get("group_member_ids", [])
+            if group_members:
+                all_members = sorted(list(set(group_members + [event.user_id])))
+                if len(all_members) > 1:
+                    group_key = tuple(all_members)
+                    self.group_cooccurrences[group_key] = self.group_cooccurrences.get(group_key, 0) + 1
+                    logger.info(f"Updated group co-occurrence for {group_key}: {self.group_cooccurrences[group_key]} trips")
+                    
         # Immediate online update for RL policy
         if event.item_id:
             reward = self.rl_engine.calculate_reward(event.event_type, event.value)

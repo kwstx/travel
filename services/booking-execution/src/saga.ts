@@ -29,8 +29,8 @@ export class BookingSagaOrchestrator {
       
       // 1. Initialize Booking
       await this.db.query(
-        'INSERT INTO bookings.flights (id, user_id, status, total_amount) VALUES ($1, $2, $3, $4)',
-        [bookingId, data.user_id, 'PENDING', data.price]
+        'INSERT INTO bookings.flights (id, user_id, status, total_amount, companion_ids) VALUES ($1, $2, $3, $4, $5)',
+        [bookingId, data.user_id, 'PENDING', data.price, JSON.stringify(data.companion_ids || [])]
       );
 
       // 2. Assemble Manifest
@@ -38,11 +38,23 @@ export class BookingSagaOrchestrator {
       const prefsRes = await this.db.query('SELECT * FROM auth.user_preferences WHERE user_id = $1', [data.user_id]);
       const loyaltyRes = await this.db.query('SELECT * FROM auth.loyalty_programs WHERE user_id = $1', [data.user_id]);
       
-      const manifest = {
+      const manifest: any = {
         primary_passenger: userRes.rows[0],
         preferences: prefsRes.rows[0],
-        loyalty: loyaltyRes.rows
+        loyalty: loyaltyRes.rows,
+        companions: []
       };
+
+      if (data.companion_ids && data.companion_ids.length > 0) {
+        const companionsRes = await this.db.query(
+          'SELECT id, first_name, last_name, relationship FROM auth.companion_profiles WHERE id = ANY($1) AND user_id = $2',
+          [data.companion_ids, data.user_id]
+        );
+        if (companionsRes.rows.length !== data.companion_ids.length) {
+          throw new Error('One or more companion profiles not found or not authorized for this user.');
+        }
+        manifest.companions = companionsRes.rows;
+      }
 
       // 3. Initialize Saga State as PROPOSED
       await this.db.query(
@@ -150,7 +162,7 @@ export class BookingSagaOrchestrator {
 
       await this.db.query(
         'UPDATE bookings.flights SET status = $1, pnr = $2 WHERE id = $3',
-        ['TICKETED', pnr, booking_id]
+        ['TICKETED', JSON.stringify(Array.isArray(pnr) ? pnr : [pnr]), booking_id]
       );
 
       await this.db.query('COMMIT');
