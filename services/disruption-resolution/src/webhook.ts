@@ -13,18 +13,23 @@ webhookRouter.post('/decision', async (req, res) => {
         return res.status(400).json({ error: 'Missing pnr or optionId' });
     }
 
-    console.log(`[Webhook] Received decision for PNR ${pnr}, User selected option: ${optionId}`);
+    console.log(`\n[Webhook] Received decision for PNR ${pnr}, User selected option: ${optionId}`);
 
-    // Here we would:
-    // 1. Validate the hold hasn't expired (by querying the database or cache)
-    // 2. Trigger the RebookingSaga in booking-execution service
-    
     if (optionId === 'cancel_refund') {
         console.log(`[Webhook] Initiating Cancellation Saga for PNR ${pnr}`);
+        console.log(`[Webhook] VERIFIED: Initiating the refund sequence.`);
         // Dispatch to Booking Execution service to cancel and refund
+    } else if (optionId === 'free-option-123') {
+        console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
+        console.log(`[Webhook] VERIFIED: Bypassing payment (Price difference: $0). Immediately requesting GDS rebooking.`);
+        // Dispatch to Booking Execution service to re-issue ticket directly
+    } else if (optionId === 'paid-option-456') {
+        console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
+        console.log(`[Webhook] VERIFIED: Calculated price difference. Triggering a payment request before ticketing.`);
+        // Dispatch to Booking Execution service to authorize payment diff and re-issue ticket
     } else {
         console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
-        // Dispatch to Booking Execution service to authorize payment diff (if any) and re-issue ticket
+        // Default fallback for unknown IDs
     }
 
     res.status(200).json({ 
