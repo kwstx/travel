@@ -275,6 +275,8 @@ export class BookingSagaOrchestrator {
       await this.db.query('ROLLBACK');
       console.error(`Failed to mark saga as failed for booking ${bookingId}:`, error);
     }
+  }
+
   async handleRebookingRequested(data: any) {
     const { original_pnr, new_offer_id, user_id, price_difference } = data;
     const rebookingId = uuidv4();
@@ -284,14 +286,15 @@ export class BookingSagaOrchestrator {
       
       // 1. Initialize Rebooking in DB
       await this.db.query(
-        'INSERT INTO bookings.flights (id, user_id, status, total_amount, original_pnr) VALUES ($1, $2, $3, $4, $5)',
-        [rebookingId, user_id, 'PENDING_REBOOKING', price_difference, original_pnr]
+        'INSERT INTO bookings.flights (id, user_id, status, total_amount, pnr) VALUES ($1, $2, $3, $4, $5)',
+        [rebookingId, user_id, 'PENDING_REBOOKING', price_difference, JSON.stringify({ original_pnr })]
       );
 
       // 2. Initialize Saga State
+      const initialState = price_difference > 0 ? SagaState.PRICED : SagaState.AUTHORIZED;
       await this.db.query(
         'INSERT INTO bookings.saga_states (booking_id, state, offer_id) VALUES ($1, $2, $3)',
-        [rebookingId, SagaState.PROPOSED, new_offer_id]
+        [rebookingId, initialState, new_offer_id]
       );
 
       await this.db.query('COMMIT');
