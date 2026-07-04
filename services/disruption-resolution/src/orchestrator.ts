@@ -8,6 +8,7 @@ export interface DisruptedFlightEvent {
     delayMinutes?: number;
 }
 
+
 export interface FlightAlternative {
     id: string;
     airline: string;
