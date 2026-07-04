@@ -40,6 +40,7 @@ export class DisruptionOrchestrator {
     }
 
     private async discoverAlternatives(originalFlightId: string): Promise<FlightAlternative[]> {
+        console.log(`[DisruptionOrchestrator] Searching flight aggregator for replacement flights for ${originalFlightId}`);
         // Mocking aggregator response
         return [
             { id: uuidv4(), airline: 'Delta', departureTime: new Date(Date.now() + 3600000 * 2), priceDifference: 0, score: 0, isHeld: false },
@@ -51,16 +52,19 @@ export class DisruptionOrchestrator {
     private scoreAlternatives(alternatives: FlightAlternative[], userId: string): FlightAlternative[] {
         // Mocking intelligence engine scoring
         // Higher score is better
-        return alternatives.map(alt => ({
+        const scored = alternatives.map(alt => ({
             ...alt,
             score: alt.priceDifference === 0 ? 100 : 50
         })).sort((a, b) => b.score - a.score);
+        console.log(`[DisruptionOrchestrator] Alternatives sorted and scored correctly:`, scored.map(s => ({ airline: s.airline, score: s.score })));
+        return scored;
     }
 
     private async placeSoftHolds(alternatives: FlightAlternative[], pnr: string): Promise<FlightAlternative[]> {
         // Mocking GDS/NDC hold logic
         // We hold it for 30 minutes
         const holdDuration = 30 * 60 * 1000;
+        console.log(`[DisruptionOrchestrator] Mock GDS/NDC layer issuing temporary soft holds for PNR ${pnr}`);
         return alternatives.map(alt => ({
             ...alt,
             isHeld: true,
