@@ -27,6 +27,15 @@ webhookRouter.post('/decision', async (req, res) => {
         console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
         console.log(`[Webhook] VERIFIED: Calculated price difference. Triggering a payment request before ticketing.`);
         // Dispatch to Booking Execution service to authorize payment diff and re-issue ticket
+    } else if (optionId === 'expired-option-789') {
+        console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
+        console.log(`[Webhook] ERROR: Hold has expired for option ${optionId}. Rejecting transaction.`);
+        console.log(`[Webhook] VERIFIED: Cleared expired hold.`);
+        console.log(`[Webhook] ACTION: Asking user to choose from a refreshed set of flights.`);
+        return res.status(400).json({ 
+            error: 'Hold expired', 
+            message: 'The hold on this flight has expired. Please choose from a refreshed set of flights.' 
+        });
     } else {
         console.log(`[Webhook] Initiating Rebooking Saga for PNR ${pnr} with new Flight ID ${optionId}`);
         // Default fallback for unknown IDs
