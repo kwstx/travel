@@ -275,5 +275,51 @@ export class BookingSagaOrchestrator {
       await this.db.query('ROLLBACK');
       console.error(`Failed to mark saga as failed for booking ${bookingId}:`, error);
     }
+  async handleRebookingRequested(data: any) {
+    const { original_pnr, new_offer_id, user_id, price_difference } = data;
+    const rebookingId = uuidv4();
+    
+    try {
+      await this.db.query('BEGIN');
+      
+      // 1. Initialize Rebooking in DB
+      await this.db.query(
+        'INSERT INTO bookings.flights (id, user_id, status, total_amount, original_pnr) VALUES ($1, $2, $3, $4, $5)',
+        [rebookingId, user_id, 'PENDING_REBOOKING', price_difference, original_pnr]
+      );
+
+      // 2. Initialize Saga State
+      await this.db.query(
+        'INSERT INTO bookings.saga_states (booking_id, state, offer_id) VALUES ($1, $2, $3)',
+        [rebookingId, SagaState.PROPOSED, new_offer_id]
+      );
+
+      await this.db.query('COMMIT');
+
+      // 3. Skip repricing assuming hold guarantees price, go straight to payment/authorization
+      if (price_difference > 0) {
+        await this.producer.send({
+          topic: 'payment-requested',
+          messages: [{ value: JSON.stringify({ booking_id: rebookingId, user_id, amount: price_difference }) }]
+        });
+      } else {
+        // Free rebooking (waiver applied), go straight to GDS ticket issue
+        await this.producer.send({
+          topic: 'gds-rebooking-requested',
+          messages: [{ 
+            value: JSON.stringify({ 
+              booking_id: rebookingId, 
+              user_id, 
+              offer_id: new_offer_id,
+              original_pnr
+            }) 
+          }]
+        });
+      }
+    } catch (error: any) {
+      await this.db.query('ROLLBACK');
+      console.error('Failed to initialize rebooking saga:', error);
+      await this.failSaga(rebookingId, ErrorType.TRANSIENT, error.message, 'Internal error initializing rebooking.');
+    }
   }
 }

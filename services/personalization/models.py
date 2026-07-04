@@ -32,6 +32,12 @@ class NotificationPreferences(BaseModel):
     alert_on_gate_change: bool = True
     alert_on_cancellation: bool = True
 
+class DisruptionPreferences(BaseModel):
+    user_id: str
+    auto_approve_price_diff: float = 0.0
+    max_acceptable_delay_hours: float = 2.0
+    require_same_airline: bool = False
+
 from enum import Enum
 
 class RoleType(str, Enum):
