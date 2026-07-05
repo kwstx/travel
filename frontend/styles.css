@@ -87,6 +87,13 @@ body {
   background-clip: text;
 }
 
+.lower-gradient {
+  background: linear-gradient(to bottom, #000000 70%, #999999 95%, #999999 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 /* ======= SEARCH BAR ======= */
 .search-bar {
   display: flex;
