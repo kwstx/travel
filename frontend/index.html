@@ -22,30 +22,56 @@
     <h1 class="headline" id="main-headline">Your next tri<span class="lower-gradient">p</span><span class="comma-gradient">,</span> on auto<span class="lower-gradient">p</span>ilot.</h1>
     
     <div class="search-bar">
-      <div class="field">
+      <div class="field" style="position: relative;">
         <span class="label">FROM</span>
-        <input type="text" class="input-text" value="Thessaloni... (SKG)">
+        <input type="text" class="input-text" id="from-input" placeholder="City or airport">
+        
+        <!-- AUTOCOMPLETE DROPDOWN -->
+        <div id="from-dropdown" class="autocomplete-dropdown" style="display: none;">
+        </div>
       </div>
       
-      <div class="field">
+      <div class="field" style="position: relative;">
         <span class="label">TO</span>
-        <input type="text" class="input-text placeholder" placeholder="City or airport">
+        <input type="text" class="input-text" id="to-input" placeholder="City or airport">
+        
+        <!-- AUTOCOMPLETE DROPDOWN -->
+        <div id="to-dropdown" class="autocomplete-dropdown" style="display: none;">
+        </div>
       </div>
       
-      <div class="field">
+      <div class="field date-field" style="position: relative;">
         <span class="label">DATES</span>
-        <div class="dates-input">
+        <div class="dates-input" id="dates-input-trigger" style="cursor: pointer;">
           <span class="date-val">Mon 6 Jul</span>
           <span class="date-arrow">&rarr;</span>
           <span class="date-placeholder">Add return</span>
         </div>
       </div>
       
-      <div class="field">
+      <div class="field class-field" style="position: relative; cursor: pointer;" id="class-trigger">
         <span class="label">CLASS</span>
-        <select class="input-select">
-          <option>Economy</option>
-        </select>
+        <div class="input-text" id="class-display" style="display: flex; align-items: center; height: 100%;">Economy</div>
+        
+        <!-- CLASS DROPDOWN -->
+        <div id="class-dropdown" class="class-dropdown" style="display: none;">
+          <div class="class-item active" data-value="Economy">
+            Economy 
+            <span class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          </div>
+          <div class="class-item" data-value="Premium Economy">
+            Premium Economy 
+            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          </div>
+          <div class="class-item" data-value="Business">
+            Business 
+            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          </div>
+          <div class="class-item" data-value="First">
+            First 
+            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          </div>
+        </div>
       </div>
       
       <button class="search-btn" id="search-btn">
@@ -81,41 +107,59 @@
           
           <!-- CARD 1 -->
           <div class="light-flight-card best-card">
-            <div class="best-badge">BEST</div>
-            
-            <div class="card-content">
-              <div class="airline-info">
+            <div class="ticket-header">
+              <div class="ticket-date">8 November 2025</div>
+              <div class="ticket-badge best-badge">BEST</div>
+            </div>
+            <div class="ticket-body">
+              <div class="ticket-station left-station">
+                <div class="station-code">SKG</div>
+                <div class="station-name">Thessaloniki</div>
+              </div>
+              <div class="ticket-flight-path">
+                <div class="path-line">
+                  <div class="dot left-dot"></div>
+                  <div class="plane-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22 16v-2l-8.5-5V3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V9L2 14v2l8.5-2.5V19L8 20.5V22l4-1 4 1v-1.5L13.5 19v-5.5L22 16z"/>
+                    </svg>
+                  </div>
+                  <div class="dot right-dot"></div>
+                </div>
+                <div class="path-duration">15h 20m</div>
+              </div>
+              <div class="ticket-station right-station">
+                <div class="station-code">JFK</div>
+                <div class="station-name">New York</div>
+              </div>
+            </div>
+            <div class="ticket-divider"></div>
+            <div class="ticket-details">
+              <div class="detail-block left-block">
+                <div class="detail-label">Departure</div>
+                <div class="detail-value">9:35 PM</div>
+              </div>
+              <div class="detail-block center-block">
+                <div class="detail-label">Stops</div>
+                <div class="detail-value">1 stop IST</div>
+              </div>
+              <div class="detail-block right-block">
+                <div class="detail-label">Arrival</div>
+                <div class="detail-value">5:55 PM</div>
+              </div>
+            </div>
+            <div class="ticket-footer">
+              <div class="airline-info-horizontal">
                 <div class="logo-circle">
-                  <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14c-2.21 0-4-1.79-4-4s1.79-4 4-4c.66 0 1.28.16 1.83.44-.81-1.46-2.38-2.44-4.18-2.44-2.76 0-5 2.24-5 5s2.24 5 5 5c1.8 0 3.37-.98 4.18-2.44-.55.28-1.17.44-1.83.44z"/>
-                  </svg>
+                  <img src="https://www.gstatic.com/flights/airline_logos/70px/TK.png" alt="Turkish Airlines Logo">
                 </div>
                 <span class="airline-name">Turkish</span>
               </div>
-
-              <div class="flight-route">
-                <div class="time-block">
-                  <div class="time space-mono">9:35 <span class="ampm">p.m.</span></div>
-                  <div class="airport space-mono">SKG</div>
+              <div class="price-action-horizontal">
+                <div class="price-info">
+                  <div class="price">&euro;648</div>
+                  <div class="price-type">one-way</div>
                 </div>
-                
-                <div class="route-line-container">
-                  <div class="duration">15h 20m</div>
-                  <div class="route-line">
-                    <div class="stop-dot"></div>
-                  </div>
-                  <div class="stop-info"><span class="stop-count">1 stop</span> IST</div>
-                </div>
-
-                <div class="time-block">
-                  <div class="time space-mono">5:55 <span class="ampm">p.m.</span></div>
-                  <div class="airport space-mono">JFK</div>
-                </div>
-              </div>
-
-              <div class="price-action">
-                <div class="price">&euro;648</div>
-                <div class="price-type">one-way</div>
                 <button class="book-btn-black">Book &rarr;</button>
               </div>
             </div>
@@ -123,39 +167,59 @@
 
           <!-- CARD 2 -->
           <div class="light-flight-card">
-            <div class="card-content">
-              <div class="airline-info">
+            <div class="ticket-header">
+              <div class="ticket-date">8 November 2025</div>
+              <div class="ticket-badge">STANDARD</div>
+            </div>
+            <div class="ticket-body">
+              <div class="ticket-station left-station">
+                <div class="station-code">SKG</div>
+                <div class="station-name">Thessaloniki</div>
+              </div>
+              <div class="ticket-flight-path">
+                <div class="path-line">
+                  <div class="dot left-dot"></div>
+                  <div class="plane-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22 16v-2l-8.5-5V3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V9L2 14v2l8.5-2.5V19L8 20.5V22l4-1 4 1v-1.5L13.5 19v-5.5L22 16z"/>
+                    </svg>
+                  </div>
+                  <div class="dot right-dot"></div>
+                </div>
+                <div class="path-duration">20h 40m</div>
+              </div>
+              <div class="ticket-station right-station">
+                <div class="station-code">JFK</div>
+                <div class="station-name">New York</div>
+              </div>
+            </div>
+            <div class="ticket-divider"></div>
+            <div class="ticket-details">
+              <div class="detail-block left-block">
+                <div class="detail-label">Departure</div>
+                <div class="detail-value">9:15 PM</div>
+              </div>
+              <div class="detail-block center-block">
+                <div class="detail-label">Stops</div>
+                <div class="detail-value">1 stop IST</div>
+              </div>
+              <div class="detail-block right-block">
+                <div class="detail-label">Arrival</div>
+                <div class="detail-value">10:55 PM <span class="plus-day" style="color:#ff4d4d;font-size:12px;vertical-align:super;">+1</span></div>
+              </div>
+            </div>
+            <div class="ticket-footer">
+              <div class="airline-info-horizontal">
                 <div class="logo-circle">
-                  <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14c-2.21 0-4-1.79-4-4s1.79-4 4-4c.66 0 1.28.16 1.83.44-.81-1.46-2.38-2.44-4.18-2.44-2.76 0-5 2.24-5 5s2.24 5 5 5c1.8 0 3.37-.98 4.18-2.44-.55.28-1.17.44-1.83.44z"/>
-                  </svg>
+                  <img src="https://www.gstatic.com/flights/airline_logos/70px/TK.png" alt="Turkish Airlines Logo">
                 </div>
                 <span class="airline-name">Turkish</span>
               </div>
-
-              <div class="flight-route">
-                <div class="time-block">
-                  <div class="time space-mono">9:15 <span class="ampm">p.m.</span></div>
-                  <div class="airport space-mono">SKG</div>
+              <div class="price-action-horizontal">
+                <div class="price-info">
+                  <div class="price">&euro;648</div>
+                  <div class="price-type">one-way</div>
                 </div>
-                
-                <div class="route-line-container">
-                  <div class="duration">20h 40m</div>
-                  <div class="route-line">
-                    <div class="stop-dot"></div>
-                  </div>
-                  <div class="stop-info"><span class="stop-count">1 stop</span> IST</div>
-                </div>
-
-                <div class="time-block">
-                  <div class="time space-mono">10:55 <span class="ampm">p.m.</span> <span class="plus-day">+1</span></div>
-                  <div class="airport space-mono">JFK</div>
-                </div>
-              </div>
-
-              <div class="price-action">
-                <div class="price">&euro;648</div>
-                <div class="price-type">one-way</div>
                 <button class="book-btn-black">Book &rarr;</button>
               </div>
             </div>
@@ -163,39 +227,59 @@
           
           <!-- CARD 3 -->
           <div class="light-flight-card">
-            <div class="card-content">
-              <div class="airline-info">
+            <div class="ticket-header">
+              <div class="ticket-date">8 November 2025</div>
+              <div class="ticket-badge">STANDARD</div>
+            </div>
+            <div class="ticket-body">
+              <div class="ticket-station left-station">
+                <div class="station-code">SKG</div>
+                <div class="station-name">Thessaloniki</div>
+              </div>
+              <div class="ticket-flight-path">
+                <div class="path-line">
+                  <div class="dot left-dot"></div>
+                  <div class="plane-icon-wrapper">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22 16v-2l-8.5-5V3.5c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5V9L2 14v2l8.5-2.5V19L8 20.5V22l4-1 4 1v-1.5L13.5 19v-5.5L22 16z"/>
+                    </svg>
+                  </div>
+                  <div class="dot right-dot"></div>
+                </div>
+                <div class="path-duration">19h 55m</div>
+              </div>
+              <div class="ticket-station right-station">
+                <div class="station-code">EWR</div>
+                <div class="station-name">Newark</div>
+              </div>
+            </div>
+            <div class="ticket-divider"></div>
+            <div class="ticket-details">
+              <div class="detail-block left-block">
+                <div class="detail-label">Departure</div>
+                <div class="detail-value">9:35 PM</div>
+              </div>
+              <div class="detail-block center-block">
+                <div class="detail-label">Stops</div>
+                <div class="detail-value">1 stop IST</div>
+              </div>
+              <div class="detail-block right-block">
+                <div class="detail-label">Arrival</div>
+                <div class="detail-value">10:30 PM</div>
+              </div>
+            </div>
+            <div class="ticket-footer">
+              <div class="airline-info-horizontal">
                 <div class="logo-circle">
-                  <svg viewBox="0 0 24 24" fill="white">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14c-2.21 0-4-1.79-4-4s1.79-4 4-4c.66 0 1.28.16 1.83.44-.81-1.46-2.38-2.44-4.18-2.44-2.76 0-5 2.24-5 5s2.24 5 5 5c1.8 0 3.37-.98 4.18-2.44-.55.28-1.17.44-1.83.44z"/>
-                  </svg>
+                  <img src="https://www.gstatic.com/flights/airline_logos/70px/TK.png" alt="Turkish Airlines Logo">
                 </div>
                 <span class="airline-name">Turkish</span>
               </div>
-
-              <div class="flight-route">
-                <div class="time-block">
-                  <div class="time space-mono">9:35 <span class="ampm">p.m.</span></div>
-                  <div class="airport space-mono">SKG</div>
+              <div class="price-action-horizontal">
+                <div class="price-info">
+                  <div class="price">&euro;648</div>
+                  <div class="price-type">one-way</div>
                 </div>
-                
-                <div class="route-line-container">
-                  <div class="duration">19h 55m</div>
-                  <div class="route-line">
-                    <div class="stop-dot"></div>
-                  </div>
-                  <div class="stop-info"><span class="stop-count">1 stop</span> IST</div>
-                </div>
-
-                <div class="time-block">
-                  <div class="time space-mono">10:30 <span class="ampm">p.m.</span></div>
-                  <div class="airport space-mono">EWR</div>
-                </div>
-              </div>
-
-              <div class="price-action">
-                <div class="price">&euro;648</div>
-                <div class="price-type">one-way</div>
                 <button class="book-btn-black">Book &rarr;</button>
               </div>
             </div>
@@ -222,13 +306,50 @@
       </div>
     </div>
     
-    <button class="add-friends" id="add-friends-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      Bring Friends
-    </button>
+    <div class="add-friends-wrapper">
+      <button class="add-friends" id="add-friends-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Bring Friends
+      </button>
+
+      <!-- FRIENDS DROPDOWN -->
+      <div id="friends-dropdown" class="friends-dropdown" style="display: none;">
+        <div class="friend-item">
+          <div class="friend-info">
+            <div class="friend-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <span>You</span>
+          </div>
+          <div class="friend-action">
+            <div class="friend-check">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="friend-item">
+          <div class="friend-info">
+            <div class="friend-icon dotted-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </div>
+            <span>Add Passengers</span>
+          </div>
+          <div class="friend-action">
+            <svg class="chevron-right" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="footer">
@@ -237,6 +358,280 @@
        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
     </svg>
   </footer>
+
+  <!-- SIGN IN MODAL -->
+  <div id="signin-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <h2 class="modal-title">What is your phone number<br>or email address?</h2>
+      
+      <div class="modal-input-group">
+        <input type="text" class="modal-input" placeholder="Enter phone number or email...">
+      </div>
+      
+      <button class="modal-btn-black" id="modal-continue-btn">Continue</button>
+      
+      <div class="modal-divider">
+        <span>or</span>
+      </div>
+      
+      <button class="modal-btn-social" id="modal-google-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" class="social-icon"> Continue with Google
+      </button>
+      
+      <button class="modal-btn-social" id="modal-apple-btn">
+        <svg class="social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.09 2.31-.86 3.59-.73 1.54.14 2.8.76 3.61 1.95-3.01 1.76-2.52 6.01.5 7.32-.71 1.78-1.55 3.48-2.78 3.63zm-4.32-14.2c.2-1.78-1.12-3.41-2.93-3.58-.29 1.93 1.25 3.53 2.93 3.58z"/></svg> Continue with Apple
+      </button>
+      
+      <p class="modal-disclaimer">You consent to receive a verification code via text message or WhatsApp. Message and data rates may apply.</p>
+    </div>
+  </div>
+
+  <!-- OTP CONFIRMATION MODAL -->
+  <div id="otp-modal" class="modal-overlay" style="display: none;">
+    <div class="img-inspired-modal">
+      <div class="img-header">
+        <h2 class="img-title">One-way to New York</h2>
+        <div class="img-header-right">
+          <img src="https://www.gstatic.com/flights/airline_logos/70px/AA.png" class="aa-logo" alt="American Airlines">
+        </div>
+      </div>
+      
+      <p class="img-subtitle">Sky will send you a <span class="otp-dotted">6 digit code</span> to confirm booking.</p>
+
+      <div class="img-toggles">
+        <div class="img-toggle active">One way</div>
+        <div class="img-toggle">Round trip</div>
+      </div>
+
+      <div class="img-locations-wrapper">
+        <div class="img-loc-line"></div>
+        <div class="img-loc-input">
+          <div class="loc-dot"></div>
+          <div class="loc-content">
+            <span class="loc-text">MIA</span>
+          </div>
+        </div>
+        <div class="img-loc-input">
+          <div class="loc-square"></div>
+          <div class="loc-content">
+            <span class="loc-text">JFK Direct</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="img-3cols">
+        <div class="img-col">
+          <span class="col-label">Date</span>
+          <span class="col-val">Wed, May 27</span>
+        </div>
+        <div class="img-col">
+          <span class="col-label">Departs</span>
+          <span class="col-val">9:52 PM</span>
+        </div>
+        <div class="img-col">
+          <span class="col-label">Arrives</span>
+          <span class="col-val">12:59 AM <span style="color:#ff4d4d">+1</span></span>
+        </div>
+      </div>
+
+      <div class="img-3cols">
+        <div class="img-col">
+          <span class="col-label">Passenger</span>
+          <span class="col-val">Alex S.</span>
+        </div>
+        <div class="img-col">
+          <span class="col-label">Seat</span>
+          <span class="col-val">Random &or;</span>
+        </div>
+        <div class="img-col">
+          <span class="col-label">Bags</span>
+          <span class="col-val">1 Carry-on &#9432;</span>
+        </div>
+      </div>
+
+      <div class="img-totals">
+        <div class="total-row"><span class="t-label">BASE FARE</span><span class="t-val">$161</span></div>
+        <div class="total-row"><span class="t-label">TAXES & FEES &#9432;</span><span class="t-val">$27</span></div>
+        <div class="total-row"><span class="t-label">SOAR UNDERCUT &#9432;</span><span class="t-val">-$1</span></div>
+        <div class="total-row grand"><span class="t-label">TOTAL</span><span class="t-val">$187</span></div>
+      </div>
+
+      <div class="otp-actions">
+        <button class="otp-btn-cancel" id="otp-cancel-btn">Cancel</button>
+        <button class="otp-btn-confirm" id="otp-confirm-btn">Confirm OTP &rarr;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOARDING PASS PAGE -->
+  <div id="boarding-pass-page" class="conf-page" style="display: none;">
+    <div class="conf-check-circle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#00d26a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    
+    <h2 class="conf-title">Flight to Kalamata ✈️</h2>
+    <p class="conf-subtitle">Confirmation <strong>#KLXATH</strong></p>
+    
+    <div class="conf-card">
+      <div class="conf-row">
+        <span class="conf-label">ROUTE</span>
+        <span class="conf-value">ATH &rarr; KLX <span style="color: #00d26a; font-size: 12px; margin-left: 4px;">Direct</span></span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">DURATION</span>
+        <span class="conf-value">30m</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">SEAT</span>
+        <span class="conf-value">01A</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">DISTANCE</span>
+        <span class="conf-value">195 km</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">BOARDING</span>
+        <span class="conf-value">Now</span>
+      </div>
+      <div class="conf-row">
+        <span class="conf-label">DATE</span>
+        <span class="conf-value">2026/07/05</span>
+      </div>
+    </div>
+    
+    <div class="conf-footer-text">
+      <span>&#9729;</span> SKY WILL SEND YOU FLIGHT UPDATES
+    </div>
+    
+    <button class="conf-done-btn" id="bp-back-btn">Done</button>
+  </div>
+
+  <!-- DATE PICKER MODAL -->
+  <div id="datepicker-modal" class="modal-overlay" style="display: none;">
+    <div class="date-picker-popup" id="date-picker-popup">
+      <div class="dp-tabs">
+        <div class="dp-tab active">Calendar</div>
+        <div class="dp-tab">Flexible dates</div>
+      </div>
+      
+      <div class="dp-calendars">
+        <!-- Left Month -->
+        <div class="dp-month">
+          <div class="dp-month-header">July 2026</div>
+          <div class="dp-weekdays">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div class="dp-days">
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-past">1</span>
+            <span class="dp-day dp-past">2</span>
+            <span class="dp-day dp-past">3</span>
+            <span class="dp-day dp-past">4</span>
+            <span class="dp-day dp-past">5</span>
+            
+            <span class="dp-day dp-today">6</span>
+            <span class="dp-day dp-selected-start">7</span>
+            <span class="dp-day dp-in-range">8</span>
+            <span class="dp-day dp-in-range">9</span>
+            <span class="dp-day dp-in-range">10</span>
+            <span class="dp-day dp-in-range">11</span>
+            <span class="dp-day dp-in-range">12</span>
+            
+            <span class="dp-day dp-in-range">13</span>
+            <span class="dp-day dp-in-range">14</span>
+            <span class="dp-day dp-in-range">15</span>
+            <span class="dp-day dp-in-range">16</span>
+            <span class="dp-day dp-in-range">17</span>
+            <span class="dp-day dp-in-range">18</span>
+            <span class="dp-day dp-in-range">19</span>
+            
+            <span class="dp-day dp-in-range">20</span>
+            <span class="dp-day dp-in-range">21</span>
+            <span class="dp-day dp-in-range">22</span>
+            <span class="dp-day dp-in-range">23</span>
+            <span class="dp-day dp-selected-end">24</span>
+            <span class="dp-day">25</span>
+            <span class="dp-day">26</span>
+            
+            <span class="dp-day">27</span>
+            <span class="dp-day">28</span>
+            <span class="dp-day">29</span>
+            <span class="dp-day">30</span>
+            <span class="dp-day">31</span>
+          </div>
+        </div>
+        
+        <!-- Right Month -->
+        <div class="dp-month">
+          <div class="dp-month-header">August 2026 <span class="dp-next-month">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span></div>
+          <div class="dp-weekdays">
+            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+          </div>
+          <div class="dp-days">
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day dp-empty"></span>
+            <span class="dp-day">1</span>
+            <span class="dp-day">2</span>
+            
+            <span class="dp-day">3</span>
+            <span class="dp-day">4</span>
+            <span class="dp-day">5</span>
+            <span class="dp-day">6</span>
+            <span class="dp-day">7</span>
+            <span class="dp-day">8</span>
+            <span class="dp-day">9</span>
+            
+            <span class="dp-day">10</span>
+            <span class="dp-day">11</span>
+            <span class="dp-day">12</span>
+            <span class="dp-day">13</span>
+            <span class="dp-day">14</span>
+            <span class="dp-day">15</span>
+            <span class="dp-day">16</span>
+            
+            <span class="dp-day">17</span>
+            <span class="dp-day">18</span>
+            <span class="dp-day">19</span>
+            <span class="dp-day">20</span>
+            <span class="dp-day">21</span>
+            <span class="dp-day">22</span>
+            <span class="dp-day">23</span>
+            
+            <span class="dp-day">24</span>
+            <span class="dp-day">25</span>
+            <span class="dp-day">26</span>
+            <span class="dp-day">27</span>
+            <span class="dp-day">28</span>
+            <span class="dp-day">29</span>
+            <span class="dp-day">30</span>
+            
+            <span class="dp-day">31</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dp-footer">
+        <div class="dp-footer-pills">
+          <button class="dp-pill dp-pill-active">Selected dates</button>
+          <button class="dp-pill"><span class="dp-plusminus">&plusmn;</span> 1 day</button>
+          <button class="dp-pill"><span class="dp-plusminus">&plusmn;</span> 2 days</button>
+          <button class="dp-pill"><span class="dp-plusminus">&plusmn;</span> 3 days</button>
+        </div>
+        <button class="dp-nav-right">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

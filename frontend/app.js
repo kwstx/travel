@@ -8,6 +8,241 @@ document.addEventListener('DOMContentLoaded', () => {
   const filtersBar = document.querySelector('.filters-bar');
   const resultsMain = document.querySelector('.results-main');
 
+  // Autocomplete Dropdown Logic
+  const fromInput = document.getElementById('from-input');
+  const fromDropdown = document.getElementById('from-dropdown');
+  const toInput = document.getElementById('to-input');
+  const toDropdown = document.getElementById('to-dropdown');
+
+  const airportsData = [
+    { countryCode: 'GL', title: 'Qaanaaq, Greenland', code: 'NAQ', subtitle: 'Qaanaaq Airport' },
+    { countryCode: 'GL', title: 'Qaarsut, Greenland', code: 'JQA', subtitle: 'Qaarsut Airport' },
+    { countryCode: 'SA', title: 'Qaisumah, Saudi Arabia', code: 'AQI', subtitle: 'Al Qaisumah/Hafr Al Batin Airport' },
+    { countryCode: 'CN', title: 'Bangda, China', code: 'BPX', subtitle: 'Qamdo Bamda Airport' },
+    { countryCode: 'GR', title: 'Athens, Greece', code: 'ATH', subtitle: 'Eleftherios Venizelos Airport' },
+    { countryCode: 'GR', title: 'Thessaloniki, Greece', code: 'SKG', subtitle: 'Makedonia Airport' },
+    { countryCode: 'GR', title: 'Heraklion, Greece', code: 'HER', subtitle: 'Nikos Kazantzakis Airport' },
+    { countryCode: 'GL', title: 'Nuuk, Greenland', code: 'GOH', subtitle: 'Nuuk Airport' },
+    { countryCode: 'US', title: 'New York, United States', code: 'JFK', subtitle: 'John F. Kennedy International' },
+    { countryCode: 'US', title: 'Newark, United States', code: 'EWR', subtitle: 'Newark Liberty International' },
+    { countryCode: 'TR', title: 'Istanbul, Turkey', code: 'IST', subtitle: 'Istanbul Airport' }
+  ];
+
+  function renderDropdown(query, dropdownElement, inputElement) {
+    dropdownElement.innerHTML = '';
+    if (!query) {
+      dropdownElement.style.display = 'none';
+      return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    const filtered = airportsData.filter(a => 
+      a.title.toLowerCase().includes(lowerQuery) || 
+      a.code.toLowerCase().includes(lowerQuery) ||
+      a.countryCode.toLowerCase().includes(lowerQuery)
+    );
+
+    if (filtered.length === 0) {
+      dropdownElement.style.display = 'none';
+      return;
+    }
+
+    filtered.forEach(item => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item';
+      div.innerHTML = `
+        <div class="dropdown-icon">${item.countryCode}</div>
+        <div class="dropdown-text">
+          <div class="dropdown-title">${item.title} <span class="dropdown-code">(${item.code})</span></div>
+          <div class="dropdown-subtitle">${item.subtitle}</div>
+        </div>
+      `;
+      div.addEventListener('click', () => {
+        inputElement.value = `${item.title.split(',')[0]} (${item.code})`;
+        dropdownElement.style.display = 'none';
+      });
+      dropdownElement.appendChild(div);
+    });
+
+    dropdownElement.style.display = 'block';
+  }
+
+  if (fromInput && fromDropdown) {
+    fromInput.addEventListener('input', (e) => renderDropdown(e.target.value.trim(), fromDropdown, fromInput));
+    fromInput.addEventListener('focus', (e) => renderDropdown(e.target.value.trim(), fromDropdown, fromInput));
+  }
+
+  if (toInput && toDropdown) {
+    toInput.addEventListener('input', (e) => renderDropdown(e.target.value.trim(), toDropdown, toInput));
+    toInput.addEventListener('focus', (e) => renderDropdown(e.target.value.trim(), toDropdown, toInput));
+  }
+
+  document.addEventListener('click', (e) => {
+    if (fromInput && fromDropdown && !fromInput.contains(e.target) && !fromDropdown.contains(e.target)) {
+      fromDropdown.style.display = 'none';
+    }
+    if (toInput && toDropdown && !toInput.contains(e.target) && !toDropdown.contains(e.target)) {
+      toDropdown.style.display = 'none';
+    }
+  });
+
+  // Class Dropdown Logic
+  const classTrigger = document.getElementById('class-trigger');
+  const classDropdown = document.getElementById('class-dropdown');
+  const classDisplay = document.getElementById('class-display');
+
+  if (classTrigger && classDropdown && classDisplay) {
+    classTrigger.addEventListener('click', (e) => {
+      // Toggle dropdown visibility
+      const isVisible = classDropdown.style.display === 'block';
+      classDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    const classItems = classDropdown.querySelectorAll('.class-item');
+    classItems.forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing immediately from document click
+
+        // Remove active class and hide check icon from all items
+        classItems.forEach(i => {
+          i.classList.remove('active');
+          const check = i.querySelector('.check-icon');
+          if (check) check.style.display = 'none';
+        });
+
+        // Add active class and show check icon for selected item
+        item.classList.add('active');
+        const check = item.querySelector('.check-icon');
+        if (check) check.style.display = 'flex';
+
+        // Update display text
+        classDisplay.textContent = item.getAttribute('data-value');
+
+        // Close dropdown
+        classDropdown.style.display = 'none';
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!classTrigger.contains(e.target)) {
+        classDropdown.style.display = 'none';
+      }
+    });
+  }
+
+  // Friends Dropdown Logic
+  const friendsDropdown = document.getElementById('friends-dropdown');
+  if (addFriendsBtn && friendsDropdown) {
+    addFriendsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = friendsDropdown.style.display === 'block';
+      friendsDropdown.style.display = isVisible ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!addFriendsBtn.contains(e.target) && !friendsDropdown.contains(e.target)) {
+        friendsDropdown.style.display = 'none';
+      }
+    });
+  }
+
+  // Date Picker Logic
+  const datesInputTrigger = document.getElementById('dates-input-trigger');
+  const datePickerModal = document.getElementById('datepicker-modal');
+  const datePickerPopup = document.getElementById('date-picker-popup');
+
+  if (datesInputTrigger && datePickerModal) {
+    datesInputTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      datePickerModal.style.display = 'flex';
+    });
+
+    // Close when clicking outside (on the overlay)
+    datePickerModal.addEventListener('click', (e) => {
+      if (e.target === datePickerModal) {
+        datePickerModal.style.display = 'none';
+      }
+    });
+  }
+
+  // Sign In Modal Logic
+  const signInBtn = document.querySelector('.sign-in');
+  const signInModal = document.getElementById('signin-modal');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const bookBtns = document.querySelectorAll('.book-btn-black');
+
+  if (signInModal && modalCloseBtn) {
+    if (signInBtn) {
+      signInBtn.addEventListener('click', () => {
+        signInModal.style.display = 'flex';
+      });
+    }
+
+    bookBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        signInModal.style.display = 'flex';
+      });
+    });
+    
+    modalCloseBtn.addEventListener('click', () => {
+      signInModal.style.display = 'none';
+    });
+
+    signInModal.addEventListener('click', (e) => {
+      if (e.target === signInModal) {
+        signInModal.style.display = 'none';
+      }
+    });
+    
+    // Boarding Pass Page Logic
+    const modalContinueBtn = document.getElementById('modal-continue-btn');
+    const modalGoogleBtn = document.getElementById('modal-google-btn');
+    const modalAppleBtn = document.getElementById('modal-apple-btn');
+    const boardingPassPage = document.getElementById('boarding-pass-page');
+    const bpBackBtn = document.getElementById('bp-back-btn');
+    
+    // OTP Modal Logic
+    const otpModal = document.getElementById('otp-modal');
+    const otpCancelBtn = document.getElementById('otp-cancel-btn');
+    const otpConfirmBtn = document.getElementById('otp-confirm-btn');
+
+    function showOtpModal() {
+      signInModal.style.display = 'none';
+      if (otpModal) otpModal.style.display = 'flex';
+    }
+
+    if (modalContinueBtn) modalContinueBtn.addEventListener('click', showOtpModal);
+    if (modalGoogleBtn) modalGoogleBtn.addEventListener('click', showOtpModal);
+    if (modalAppleBtn) modalAppleBtn.addEventListener('click', showOtpModal);
+
+    if (otpCancelBtn) {
+      otpCancelBtn.addEventListener('click', () => {
+        otpModal.style.display = 'none';
+      });
+    }
+
+    if (otpConfirmBtn) {
+      otpConfirmBtn.addEventListener('click', () => {
+        otpModal.style.display = 'none';
+        if (boardingPassPage) boardingPassPage.style.display = 'flex';
+      });
+    }
+
+    if (otpModal) {
+      otpModal.addEventListener('click', (e) => {
+        if (e.target === otpModal) {
+          otpModal.style.display = 'none';
+        }
+      });
+    }
+
+    if (bpBackBtn) {
+      bpBackBtn.addEventListener('click', () => {
+        boardingPassPage.style.display = 'none';
+      });
+    }
+  }
+
   searchBtn.addEventListener('click', () => {
     // Hide original elements
     mainHeadline.style.display = 'none';
