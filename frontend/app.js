@@ -132,6 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Friends Dropdown Logic
   const friendsDropdown = document.getElementById('friends-dropdown');
+  const addPassengersItem = document.getElementById('add-passengers-item');
+  const addPassengersModal = document.getElementById('add-passengers-modal');
+  const apCloseBtn = document.getElementById('ap-close-btn');
+
   if (addFriendsBtn && friendsDropdown) {
     addFriendsBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -142,6 +146,27 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', (e) => {
       if (!addFriendsBtn.contains(e.target) && !friendsDropdown.contains(e.target)) {
         friendsDropdown.style.display = 'none';
+      }
+    });
+  }
+
+  // Add Passengers Modal Logic
+  if (addPassengersItem && addPassengersModal) {
+    addPassengersItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (friendsDropdown) friendsDropdown.style.display = 'none';
+      addPassengersModal.style.display = 'flex';
+    });
+  }
+
+  if (apCloseBtn && addPassengersModal) {
+    apCloseBtn.addEventListener('click', () => {
+      addPassengersModal.style.display = 'none';
+    });
+    
+    addPassengersModal.addEventListener('click', (e) => {
+      if (e.target === addPassengersModal) {
+        addPassengersModal.style.display = 'none';
       }
     });
   }

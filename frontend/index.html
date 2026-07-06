@@ -334,7 +334,7 @@
           </div>
         </div>
         
-        <div class="friend-item">
+        <div class="friend-item" id="add-passengers-item">
           <div class="friend-info">
             <div class="friend-icon dotted-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -629,6 +629,65 @@
         <button class="dp-nav-right">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD PASSENGERS MODAL -->
+  <div id="add-passengers-modal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
+    <div class="receipt-wrapper">
+      <div class="receipt-ticket">
+        <div class="receipt-header">Receipt</div>
+        <div class="receipt-divider"></div>
+        <div class="receipt-body">
+          <div class="receipt-section">
+            <div class="receipt-label">Title</div>
+            <div class="receipt-value receipt-title-text">Team Dinner</div>
+          </div>
+          
+          <div class="receipt-section">
+            <div class="receipt-label">Total Bill</div>
+            <div class="receipt-value receipt-bill-text">$880.90</div>
+          </div>
+          
+          <div class="fc-section">
+            <div class="fc-title">Share your friend code</div>
+            <div class="fc-options">
+              <div class="fc-option">
+                <div class="fc-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                </div>
+              </div>
+              
+              <div class="fc-option">
+                <div class="fc-icon-wrapper">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/IMessage_logo.svg" width="34" height="34" alt="iMessage">
+                </div>
+              </div>
+
+              <div class="fc-option">
+                <div class="fc-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="#000">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="fc-option">
+                <div class="fc-icon-wrapper">
+                  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
