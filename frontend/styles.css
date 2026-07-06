@@ -2116,6 +2116,7 @@ body {
 /* ======= RECEIPT MODAL ======= */
 .receipt-wrapper {
   filter: drop-shadow(0 10px 24px rgba(0,0,0,0.2));
+  transform: scale(1.15);
 }
 
 .receipt-ticket {
