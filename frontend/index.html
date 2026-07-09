@@ -8,79 +8,186 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+  <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css'>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="header">
-    <div class="logo">
-      Roam
+  <nav class="apple-nav">
+    <div class="nav-container">
+      <a href="#" class="nav-link nav-icon">
+        <svg viewBox="0 0 17 20" fill="currentColor" width="16" height="16"><path d="M14.023 11.234c-.024-2.584 2.115-3.834 2.213-3.896-1.21-1.765-3.08-2.006-3.755-2.036-1.584-.16-3.09.932-3.893.932-.803 0-2.037-.91-3.35-.883-1.718.026-3.3.997-4.186 2.535-1.796 3.11-.458 7.721 1.295 10.252.85 1.229 1.854 2.616 3.184 2.565 1.278-.052 1.767-.827 3.32-.827 1.554 0 1.99.827 3.32.799 1.356-.027 2.227-1.254 3.076-2.484 1.01-1.474 1.424-2.905 1.444-2.98-.03-.013-2.65-1.016-2.67-3.977M11.666 3.336c.697-.845 1.166-2.02 1.038-3.195-1.008.04-2.234.67-2.95 1.515-.64.757-1.205 1.954-1.055 3.11 1.13.088 2.27-.584 2.967-1.43"></path></svg>
+      </a>
+      <a href="#" class="nav-link">Store</a>
+      <a href="#" class="nav-link">Mac</a>
+      <a href="#" class="nav-link">iPad</a>
+      <a href="#" class="nav-link">iPhone</a>
+      <a href="#" class="nav-link">Aero</a>
+      <a href="#" class="nav-link">App Store</a>
+      <a href="#" class="nav-link">Support</a>
+      <a href="#" class="nav-link">Search</a>
+      <a href="#" class="nav-link">Bag</a>
+      <a href="#" class="nav-link nav-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+      </a>
     </div>
-    <button class="sign-in">Sign in &rarr;</button>
-  </header>
+  </nav>
 
   <main class="main-content">
-    <h1 class="headline" id="main-headline">Your next tri<span class="lower-gradient">p</span><span class="comma-gradient">,</span> on auto<span class="lower-gradient">p</span>ilot.</h1>
+    <div class="hero-text">
+      <h1 class="headline" id="main-headline">Aero. Up, and away.</h1>
+      <h2 class="subheadline">Re-imagine your journey.</h2>
+    </div>
+    <div class="search-bar-wrapper">
+      <div class="search-bar">
+        <div class="search-segment-wrapper">
+          <div class="search-segment icon-segment">
+            <i class="fi fi-sr-plane-departure" style="font-size: 20px; display: flex; align-items: center;"></i>
+          </div>
+          
+          <div class="search-segment input-segment" style="position: relative;">
+            <div class="segment-content">
+              <div class="segment-label">From</div>
+              <input type="text" class="segment-input" id="from-input" placeholder="e.g., SFO, San Francisco">
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            
+            <!-- AUTOCOMPLETE DROPDOWN -->
+            <div id="from-dropdown" class="autocomplete-dropdown" style="display: none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="search-segment-wrapper">
+          <div class="search-segment icon-segment">
+            <i class="fi fi-sr-plane-arrival" style="font-size: 20px; display: flex; align-items: center;"></i>
+          </div>
+          
+          <div class="search-segment input-segment" style="position: relative;">
+            <div class="segment-content">
+              <div class="segment-label">To</div>
+              <input type="text" class="segment-input" id="to-input" placeholder="e.g., LHR, London">
+            </div>
+            <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            
+            <!-- AUTOCOMPLETE DROPDOWN -->
+            <div id="to-dropdown" class="autocomplete-dropdown" style="display: none;">
+            </div>
+          </div>
+        </div>
+
+        <div class="search-segment date-segment" id="depart-input-trigger" style="cursor: pointer;">
+          <div class="date-box">
+            <div class="segment-label">Depart</div>
+            <div class="segment-val dark">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              20 Nov
+            </div>
+          </div>
+        </div>
+
+        <div class="search-segment date-segment" id="return-input-trigger" style="cursor: pointer;">
+          <div class="date-box">
+            <div class="segment-label">Return</div>
+            <div class="segment-val dark">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              27 Nov
+            </div>
+          </div>
+        </div>
+
+        <div class="search-segment guests-segment" id="class-trigger" style="position: relative; cursor: pointer;">
+          <div class="segment-content">
+            <div class="segment-label">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="margin-right: 4px;">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              Guests
+            </div>
+            <div class="segment-val dark" id="class-display" style="gap: 16px;">
+              2
+              <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: auto;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+          </div>
+          
+          <!-- CLASS DROPDOWN -->
+          <div id="class-dropdown" class="class-dropdown" style="display: none;">
+            <div class="class-item active" data-value="1">
+              1 
+              <span class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            </div>
+            <div class="class-item" data-value="2">
+              2 
+              <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            </div>
+            <div class="class-item" data-value="3">
+              3 
+              <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            </div>
+            <div class="class-item" data-value="4">
+              4 
+              <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            </div>
+          </div>
+        </div>
+
+        <button class="search-flights-btn" id="search-btn">Search Flights</button>
+      </div>
+    </div>
     
-    <div class="search-bar">
-      <div class="field" style="position: relative;">
-        <span class="label">FROM</span>
-        <input type="text" class="input-text" id="from-input" placeholder="City or airport">
+    <div class="promo-text">Try Aero Premium free for 1 month.</div>
+    
+
+    
+    <div class="highlights-section">
+      <h2 class="highlights-heading">Get the highlights.</h2>
+      
+      <div class="highlights-grid">
+        <div class="highlight-card">
+          <div class="card-content">
+            <div class="card-text">
+              <h3>SmartSearch.</h3>
+              <p>Fast, intuitive<br>flight finding.</p>
+            </div>
+            <div class="card-icon-placeholder smartsearch-icon">
+              <!-- Placeholder for plane icon inside circle -->
+            </div>
+          </div>
+        </div>
         
-        <!-- AUTOCOMPLETE DROPDOWN -->
-        <div id="from-dropdown" class="autocomplete-dropdown" style="display: none;">
+        <div class="highlight-card">
+          <div class="card-content">
+            <div class="card-text">
+              <h3>PriceGuard.</h3>
+              <p>The lowest fares,<br>guaranteed.</p>
+            </div>
+            <div class="card-icon-placeholder priceguard-icon">
+              <!-- Placeholder for bell alert icon -->
+            </div>
+          </div>
         </div>
-      </div>
-      
-      <div class="field" style="position: relative;">
-        <span class="label">TO</span>
-        <input type="text" class="input-text" id="to-input" placeholder="City or airport">
         
-        <!-- AUTOCOMPLETE DROPDOWN -->
-        <div id="to-dropdown" class="autocomplete-dropdown" style="display: none;">
-        </div>
-      </div>
-      
-      <div class="field date-field" style="position: relative;">
-        <span class="label">DATES</span>
-        <div class="dates-input" id="dates-input-trigger" style="cursor: pointer;">
-          <span class="date-val">Mon 6 Jul</span>
-          <span class="date-arrow">&rarr;</span>
-          <span class="date-placeholder">Add return</span>
-        </div>
-      </div>
-      
-      <div class="field class-field" style="position: relative; cursor: pointer;" id="class-trigger">
-        <span class="label">CLASS</span>
-        <div class="input-text" id="class-display" style="display: flex; align-items: center; height: 100%;">Economy</div>
-        
-        <!-- CLASS DROPDOWN -->
-        <div id="class-dropdown" class="class-dropdown" style="display: none;">
-          <div class="class-item active" data-value="Economy">
-            Economy 
-            <span class="check-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
-          </div>
-          <div class="class-item" data-value="Premium Economy">
-            Premium Economy 
-            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
-          </div>
-          <div class="class-item" data-value="Business">
-            Business 
-            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
-          </div>
-          <div class="class-item" data-value="First">
-            First 
-            <span class="check-icon" style="display: none;"><svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+        <div class="highlight-card">
+          <div class="card-content">
+            <div class="card-text">
+              <h3>FlightTracker.</h3>
+              <p>In-flight maps,<br>real-time updates.</p>
+            </div>
+            <div class="card-icon-placeholder flighttracker-icon">
+              <!-- Placeholder for globe image -->
+            </div>
           </div>
         </div>
       </div>
-      
-      <button class="search-btn" id="search-btn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        Search
-      </button>
     </div>
 
     <!-- IN-PAGE RESULTS SECTION -->
@@ -637,26 +744,26 @@
   <div id="add-passengers-modal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 1000;">
     <div class="receipt-wrapper">
       <div class="receipt-ticket">
-        <div class="receipt-header">Receipt</div>
+        <div class="receipt-header">Add Passengers</div>
         <div class="receipt-divider"></div>
         <div class="receipt-body">
           <div class="receipt-section">
-            <div class="receipt-label">Title</div>
+            <div class="receipt-label">Fly together. Pay separately.</div>
             <div class="receipt-value receipt-title-text">Team Dinner</div>
           </div>
           
           <div class="img-3cols">
             <div class="img-col">
               <span class="col-label">Adults</span>
-              <span class="col-val">Alex S.</span>
+              <span class="col-val">1</span>
             </div>
             <div class="img-col">
               <span class="col-label">Children</span>
-              <span class="col-val">Random &or;</span>
+              <span class="col-val">0</span>
             </div>
             <div class="img-col">
               <span class="col-label">Infants</span>
-              <span class="col-val">1 Carry-on &#9432;</span>
+              <span class="col-val">0</span>
             </div>
           </div>
           

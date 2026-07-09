@@ -172,15 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Date Picker Logic
-  const datesInputTrigger = document.getElementById('dates-input-trigger');
+  const departInputTrigger = document.getElementById('depart-input-trigger');
+  const returnInputTrigger = document.getElementById('return-input-trigger');
   const datePickerModal = document.getElementById('datepicker-modal');
   const datePickerPopup = document.getElementById('date-picker-popup');
 
-  if (datesInputTrigger && datePickerModal) {
-    datesInputTrigger.addEventListener('click', (e) => {
+  if (departInputTrigger && datePickerModal) {
+    departInputTrigger.addEventListener('click', (e) => {
       e.stopPropagation();
       datePickerModal.style.display = 'flex';
     });
+  }
+
+  if (returnInputTrigger && datePickerModal) {
+    returnInputTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      datePickerModal.style.display = 'flex';
+    });
+  }
 
     // Close when clicking outside (on the overlay)
     datePickerModal.addEventListener('click', (e) => {
